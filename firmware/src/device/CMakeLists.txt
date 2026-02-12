@@ -1,0 +1,5 @@
+if(MCU MATCHES "STM32H7")
+  add_subdirectory(stm32h7)
+else()
+  message(FATAL_ERROR "Unknown device subdirectory for ${MCU}")
+endif()

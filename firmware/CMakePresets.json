@@ -1,0 +1,35 @@
+{
+  "version": 4,
+  "configurePresets": [
+    {
+      "name": "stm32h753zi-debug",
+      "displayName": "STM32H753ZI Debug",
+      "binaryDir": "${sourceDir}/build/stm32h753zi-debug",
+      "cacheVariables": {
+        "MCU": "STM32H753ZI",
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/AnyGccArmNoneEabi.cmake"
+      }
+    },
+    {
+      "name": "stm32h753zi-release",
+      "displayName": "STM32H753ZI Release",
+      "binaryDir": "${sourceDir}/build/stm32h753zi-release",
+      "cacheVariables": {
+        "MCU": "STM32H753ZI",
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/AnyGccArmNoneEabi.cmake"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "stm32h753zi-debug",
+      "configurePreset": "stm32h753zi-debug"
+    },
+    {
+      "name": "stm32h753zi-release",
+      "configurePreset": "stm32h753zi-release"
+    }
+  ]
+}
