@@ -26,6 +26,9 @@
 Reset_Handler:
   ldr  sp, =_estack
 
+/* Early system init (CMSIS) */
+  bl   SystemInit
+
 /* Copy .data from flash to RAM */
   movs r1, #0
   b    LoopCopyDataInit
@@ -55,6 +58,9 @@ LoopFillZerobss:
   ldr  r3, =_ebss
   cmp  r2, r3
   bcc  FillZerobss
+
+/* Call static constructors / C library init */
+  bl   __libc_init_array
 
 /* Call main */
   bl   main

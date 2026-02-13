@@ -21,7 +21,6 @@ CTestTestfile.cmake
 *.su
 
 # IDE / editor files
-.vscode/
 .idea/
 *.swp
 *.swo

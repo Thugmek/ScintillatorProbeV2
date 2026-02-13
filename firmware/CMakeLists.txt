@@ -44,6 +44,7 @@ add_link_options(-Wl,--gc-sections -Wl,--print-memory-usage)
 # Main firmware executable
 add_executable(firmware)
 
+add_subdirectory(lib/stm32_hal)
 add_subdirectory(src)
 
 # Post-build: generate .bin, .hex, report size

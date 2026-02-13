@@ -6,4 +6,3 @@ else()
   message(FATAL_ERROR "Unknown linker script for ${MCU}")
 endif()
 
-target_compile_definitions(firmware PRIVATE STM32H753xx)
