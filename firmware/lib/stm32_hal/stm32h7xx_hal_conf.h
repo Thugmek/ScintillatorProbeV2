@@ -20,9 +20,10 @@ extern "C" {
 #define HAL_GPIO_MODULE_ENABLED
 #define HAL_PWR_MODULE_ENABLED
 #define HAL_RCC_MODULE_ENABLED
+#define HAL_TIM_MODULE_ENABLED
+#define HAL_ADC_MODULE_ENABLED
 
 /* Uncomment to enable additional modules as needed:
-#define HAL_ADC_MODULE_ENABLED
 #define HAL_CEC_MODULE_ENABLED
 #define HAL_COMP_MODULE_ENABLED
 #define HAL_CRC_MODULE_ENABLED
@@ -149,6 +150,14 @@ extern "C" {
 
 #ifdef HAL_PWR_MODULE_ENABLED
   #include "stm32h7xx_hal_pwr.h"
+#endif
+
+#ifdef HAL_ADC_MODULE_ENABLED
+  #include "stm32h7xx_hal_adc.h"
+#endif
+
+#ifdef HAL_TIM_MODULE_ENABLED
+  #include "stm32h7xx_hal_tim.h"
 #endif
 
 /* ── assert_param macro ────────────────────────────────────────────── */
