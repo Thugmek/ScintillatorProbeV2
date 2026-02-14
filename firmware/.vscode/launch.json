@@ -15,7 +15,23 @@
             "device": "STM32H753ZI",
             "svdFile": "",
             "runToEntryPoint": "main",
-            "preLaunchTask": "Build Debug"
+            "preLaunchTask": "Build Debug",
+            "rttConfig": {
+                "enabled": true,
+                "address": "auto",
+                "searchSize": 16,
+                "searchId": "SEGGER RTT",
+                "clearSearch": true,
+                "polling_interval": 10,
+                "decoders": [
+                    {
+                        "label": "Logging",
+                        "port": 0,
+                        "noprompt": true,
+                        "type": "console"
+                    }
+                ]
+            }
         },
         {
             "name": "Attach STM32H753 (OpenOCD)",

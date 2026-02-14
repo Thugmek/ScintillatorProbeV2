@@ -36,6 +36,7 @@ add_compile_options(
 
 # Debug: include dwarf info, no optimization (good for stepping)
 add_compile_options($<$<CONFIG:Debug>:-Og> $<$<CONFIG:Debug>:-g3> $<$<CONFIG:Debug>:-gdwarf-4>)
+add_compile_definitions($<$<CONFIG:Debug>:_DEBUG>)
 add_compile_options($<$<CONFIG:Release>:-Os>)
 
 add_link_options(-mthumb ${MCU_FLAGS})
@@ -45,6 +46,7 @@ add_link_options(-Wl,--gc-sections -Wl,--print-memory-usage)
 add_executable(firmware)
 
 add_subdirectory(lib/stm32_hal)
+add_subdirectory(lib/segger)
 add_subdirectory(src)
 
 # Post-build: generate .bin, .hex, report size

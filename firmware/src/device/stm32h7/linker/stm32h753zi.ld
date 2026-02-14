@@ -95,6 +95,13 @@ SECTIONS
     _sdata = .;
     *(.data)
     *(.data*)
+
+    /* Log component descriptors */
+    . = ALIGN(4);
+    __start_log_components = .;
+    KEEP(*(.data.log_components))
+    __end_log_components = .;
+
     *(.RamFunc)
     *(.RamFunc*)
     . = ALIGN(4);
