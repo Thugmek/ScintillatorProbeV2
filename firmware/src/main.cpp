@@ -46,8 +46,7 @@ int main() {
 
     log_info(Main, "Firmware started");
 
-    lcd::test_connection();
-    // lcd_demo();
+    lcd_demo();
 
     HAL_TIM_PWM_Start(&hal::htim1, TIM_CHANNEL_1);
     log_info(Main, "PWM started on TIM1_CH1");
