@@ -22,6 +22,7 @@ extern "C" {
 #define HAL_RCC_MODULE_ENABLED
 #define HAL_TIM_MODULE_ENABLED
 #define HAL_ADC_MODULE_ENABLED
+#define HAL_SPI_MODULE_ENABLED
 
 /* Uncomment to enable additional modules as needed:
 #define HAL_CEC_MODULE_ENABLED
@@ -61,7 +62,6 @@ extern "C" {
 #define HAL_SMARTCARD_MODULE_ENABLED
 #define HAL_SMBUS_MODULE_ENABLED
 #define HAL_SPDIFRX_MODULE_ENABLED
-#define HAL_SPI_MODULE_ENABLED
 #define HAL_SRAM_MODULE_ENABLED
 #define HAL_SWPMI_MODULE_ENABLED
 #define HAL_TIM_MODULE_ENABLED
@@ -154,6 +154,10 @@ extern "C" {
 
 #ifdef HAL_ADC_MODULE_ENABLED
   #include "stm32h7xx_hal_adc.h"
+#endif
+
+#ifdef HAL_SPI_MODULE_ENABLED
+  #include "stm32h7xx_hal_spi.h"
 #endif
 
 #ifdef HAL_TIM_MODULE_ENABLED

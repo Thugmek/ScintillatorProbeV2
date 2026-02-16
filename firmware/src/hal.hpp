@@ -1,5 +1,8 @@
 #include "stm32h7xx_hal.h"
 
+#define LCD_CS_Pin GPIO_PIN_4
+#define LCD_CS_GPIO_Port GPIOA
+
 namespace hal {
     void panic(void);
     void init(void);
