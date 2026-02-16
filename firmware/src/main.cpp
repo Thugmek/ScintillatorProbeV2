@@ -2,14 +2,52 @@
 #include "hal.hpp"
 #include "capture.hpp"
 #include "logging/log.hpp"
+#include "lcd/ili9488.hpp"
 
 LOG_COMPONENT_DEF(Main, logging::Severity::debug);
+
+static void lcd_demo() {
+    lcd::test_connection();
+    lcd::init();
+
+    // Flash primary colors
+    const lcd::Color flash[] = {lcd::colors::RED, lcd::colors::GREEN, lcd::colors::BLUE};
+    for (auto c : flash) {
+        lcd::fill_screen(c);
+        HAL_Delay(400);
+    }
+
+    // Black background
+    lcd::fill_screen(lcd::colors::BLACK);
+
+    // Draw 8 vertical color bars
+    const lcd::Color bars[] = {
+        lcd::colors::WHITE, lcd::colors::RED,     lcd::colors::GREEN,  lcd::colors::BLUE,
+        lcd::colors::YELLOW, lcd::colors::CYAN,   lcd::colors::MAGENTA, lcd::colors::ORANGE
+    };
+    constexpr uint16_t bar_w = lcd::WIDTH / 8;
+    for (int i = 0; i < 8; i++) {
+        lcd::fill_rect(i * bar_w, 0, bar_w, lcd::HEIGHT / 2, bars[i]);
+    }
+
+    // Draw horizontal gradient below the bars
+    for (uint16_t x = 0; x < lcd::WIDTH; x++) {
+        uint8_t r = static_cast<uint8_t>(x * 255 / lcd::WIDTH);
+        uint8_t b = static_cast<uint8_t>(255 - r);
+        lcd::fill_rect(x, lcd::HEIGHT / 2, 1, lcd::HEIGHT / 2, {r, 0, b});
+    }
+
+    log_info(Main, "LCD: demo pattern drawn");
+}
 
 int main() {
     hal::init();
     logging::init();
 
     log_info(Main, "Firmware started");
+
+    lcd::test_connection();
+    // lcd_demo();
 
     HAL_TIM_PWM_Start(&hal::htim1, TIM_CHANNEL_1);
     log_info(Main, "PWM started on TIM1_CH1");

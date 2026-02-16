@@ -15,6 +15,7 @@ namespace hal {
     void MX_TIM1_Init(void);
     void MX_ADC1_Init(void);
     void MX_ADC2_Init(void);
+    void MX_SPI1_Init(void);
 
     void panic(void){
         // TODO goto safe state here
@@ -32,6 +33,7 @@ namespace hal {
         MX_TIM1_Init();
         MX_ADC1_Init();
         MX_ADC2_Init();
+        MX_SPI1_Init();
     }
 
     void MPU_Config(void){
@@ -118,7 +120,7 @@ namespace hal {
 
         /** Initializes the peripherals clock
         */
-        PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_ADC;
+        PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_ADC | RCC_PERIPHCLK_SPI123;
         PeriphClkInitStruct.PLL2.PLL2M = 32;
         PeriphClkInitStruct.PLL2.PLL2N = 100;
         PeriphClkInitStruct.PLL2.PLL2P = 4;
@@ -344,11 +346,45 @@ namespace hal {
     }
 
     void MX_SPI1_Init(void){
-        /* SPI1 parameter configuration*/
+        /**SPI1 GPIO Configuration
+        PB3 (JTDO/TRACESWO)     ------> SPI1_SCK
+        PB4 (NJTRST)            ------> SPI1_MISO
+        PB5                     ------> SPI1_MOSI
+
+        PA4     ------> LCD_CS
+        PA5     ------> LCD_DC
+        PA3     ------> LCD_RST
+        */
+        __HAL_RCC_SPI1_CLK_ENABLE();
+        __HAL_RCC_GPIOA_CLK_ENABLE();
+        __HAL_RCC_GPIOB_CLK_ENABLE();
+
+        GPIO_InitTypeDef GPIO_InitStruct = {0};
+        GPIO_InitStruct.Pin = GPIO_PIN_3|GPIO_PIN_4|GPIO_PIN_5;
+        GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+        GPIO_InitStruct.Pull = GPIO_NOPULL;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+        GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
+        HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+        /* LCD control pins: CS, DC, RST - active low, start deasserted */
+        HAL_GPIO_WritePin(LCD_CS_GPIO_Port, LCD_CS_Pin, GPIO_PIN_SET);
+        HAL_GPIO_WritePin(LCD_DC_GPIO_Port, LCD_DC_Pin, GPIO_PIN_SET);
+        HAL_GPIO_WritePin(LCD_RST_GPIO_Port, LCD_RST_Pin, GPIO_PIN_SET);
+
+        GPIO_InitStruct = {0};
+        GPIO_InitStruct.Pin = LCD_CS_Pin | LCD_DC_Pin | LCD_RST_Pin;
+        GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+        GPIO_InitStruct.Pull = GPIO_NOPULL;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+        HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+        /* SPI1 parameter configuration
+         * PLL2_P = 50 MHz, prescaler 4 -> 12.5 MHz SPI clock */
         hspi1.Instance = SPI1;
         hspi1.Init.Mode = SPI_MODE_MASTER;
         hspi1.Init.Direction = SPI_DIRECTION_2LINES;
-        hspi1.Init.DataSize = SPI_DATASIZE_4BIT;
+        hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
         hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
         hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
         hspi1.Init.NSS = SPI_NSS_SOFT;
@@ -357,7 +393,7 @@ namespace hal {
         hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
         hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
         hspi1.Init.CRCPolynomial = 0x0;
-        hspi1.Init.NSSPMode = SPI_NSS_PULSE_ENABLE;
+        hspi1.Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
         hspi1.Init.NSSPolarity = SPI_NSS_POLARITY_LOW;
         hspi1.Init.FifoThreshold = SPI_FIFO_THRESHOLD_01DATA;
         hspi1.Init.TxCRCInitializationPattern = SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
@@ -371,33 +407,6 @@ namespace hal {
         {
             panic();
         }
-
-        /**SPI1 GPIO Configuration
-        PB3 (JTDO/TRACESWO)     ------> SPI1_SCK
-        PB4 (NJTRST)     ------> SPI1_MISO
-        PB5     ------> SPI1_MOSI
-
-        PA4     ------> LCD_CS
-        */
-        __HAL_RCC_SPI1_CLK_ENABLE();
-        __HAL_RCC_GPIOB_CLK_ENABLE();
-        GPIO_InitTypeDef GPIO_InitStruct = {0};
-        GPIO_InitStruct.Pin = GPIO_PIN_3|GPIO_PIN_4|GPIO_PIN_5;
-        GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-        GPIO_InitStruct.Pull = GPIO_NOPULL;
-        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-        GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
-        HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-        /*Configure GPIO pin Output Level */
-        HAL_GPIO_WritePin(LCD_CS_GPIO_Port, LCD_CS_Pin, GPIO_PIN_RESET);
-        /*Configure GPIO pin : LCD_CS_Pin */
-        GPIO_InitStruct = {0};
-        GPIO_InitStruct.Pin = LCD_CS_Pin;
-        GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-        GPIO_InitStruct.Pull = GPIO_NOPULL;
-        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-        HAL_GPIO_Init(LCD_CS_GPIO_Port, &GPIO_InitStruct);
     }
 
 }
