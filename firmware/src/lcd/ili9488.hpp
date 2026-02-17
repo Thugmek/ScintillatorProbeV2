@@ -19,7 +19,7 @@ namespace colors {
     inline constexpr Color YELLOW  = {255, 255, 0};
     inline constexpr Color CYAN    = {0,   255, 255};
     inline constexpr Color MAGENTA = {255, 0,   255};
-    inline constexpr Color ORANGE  = {255, 165, 0};
+    inline constexpr Color ORANGE  = {255, 180, 0};
     inline constexpr Color GRAY    = {128, 128, 128};
 }
 

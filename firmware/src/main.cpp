@@ -7,11 +7,10 @@
 LOG_COMPONENT_DEF(Main, logging::Severity::debug);
 
 static void lcd_demo() {
-    lcd::test_connection();
     lcd::init();
 
     // Flash primary colors
-    const lcd::Color flash[] = {lcd::colors::RED, lcd::colors::GREEN, lcd::colors::BLUE};
+    const lcd::Color flash[] = {lcd::colors::YELLOW, lcd::colors::ORANGE, lcd::colors::YELLOW};
     for (auto c : flash) {
         lcd::fill_screen(c);
         HAL_Delay(400);

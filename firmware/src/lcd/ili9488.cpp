@@ -124,27 +124,23 @@ bool test_connection() {
 void init() {
     hw_reset();
     write_cmd(SWRESET); HAL_Delay(120);
+    write_cmd(SLPOUT);  HAL_Delay(120);
+    // Gamma correction
     { const uint8_t d[] = {0x00,0x13,0x18,0x04,0x0F,0x06,0x3A,0x56,
                            0x4D,0x03,0x0A,0x06,0x30,0x3E,0x0F};
       write_cmd_data(PGAMMA, d, sizeof(d)); }
     { const uint8_t d[] = {0x00,0x13,0x18,0x01,0x11,0x06,0x38,0x34,
                            0x4D,0x06,0x0D,0x0B,0x31,0x37,0x0F};
       write_cmd_data(NGAMMA, d, sizeof(d)); }
+    // Power control
     { const uint8_t d[] = {0x18, 0x16}; write_cmd_data(PWCTR1, d, 2); }
     write_cmd8(PWCTR2, 0x45);
     { const uint8_t d[] = {0x00, 0x63, 0x01}; write_cmd_data(VMCTR, d, 3); }
-    write_cmd8(MADCTL, 0x48);
-    write_cmd8(PIXFMT, 0x66);
-    write_cmd8(IFMODE, 0x80);
-    { const uint8_t d[] = {0x00, 0x10}; write_cmd_data(FRMCTR, d, 2); }
-    write_cmd8(INVCTR, 0x02);
-    { const uint8_t d[] = {0x02, 0x02}; write_cmd_data(DISCTRL, d, 2); }
-    write_cmd8(IMGFUNC, 0x00);
-    { const uint8_t d[] = {0xA9, 0x51, 0x2C, 0x82}; write_cmd_data(ADJCTRL, d, 4); }
-    write_cmd(SLPOUT); HAL_Delay(120);
-    write_cmd(INVON);
+    // Pixel format and orientation
+    write_cmd8(MADCTL, 0x48);   // MX + BGR
+    write_cmd8(PIXFMT, 0x66);   // 18-bit RGB666
     write_cmd(DISPON); HAL_Delay(20);
-    fill_screen(colors::GREEN);
+    fill_screen(colors::BLACK);
 }
 
 void fill_screen(Color color) { fill_rect(0, 0, WIDTH, HEIGHT, color); }
