@@ -28,5 +28,7 @@ bool test_connection();
 void fill_screen(Color color);
 void fill_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, Color color);
 void draw_pixel(uint16_t x, uint16_t y, Color color);
+void draw_char(uint16_t x, uint16_t y, char ch, Color fg, Color bg);
+void draw_string(uint16_t x, uint16_t y, const char* str, Color fg, Color bg);
 
 } // namespace lcd

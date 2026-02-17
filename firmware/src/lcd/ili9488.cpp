@@ -1,4 +1,5 @@
 #include "lcd/ili9488.hpp"
+#include "lcd/font_8x16.hpp"
 #include "hal.hpp"
 #include "logging/log.hpp"
 
@@ -170,6 +171,42 @@ void draw_pixel(uint16_t x, uint16_t y, Color color) {
                       static_cast<uint16_t>(0x100 | color.b) };
     spi_tx9(px, 3);
     cs_high();
+}
+
+void draw_char(uint16_t x, uint16_t y, char ch, Color fg, Color bg) {
+    if (x + font::CHAR_W > WIDTH || y + font::CHAR_H > HEIGHT) return;
+    if (ch < font::FIRST_CHAR || ch > font::LAST_CHAR) ch = ' ';
+
+    const uint8_t* glyph = font::glyphs[ch - font::FIRST_CHAR];
+
+    // Build all 8x16 pixels into line_buf (8*16*3 = 384 frames, fits in 960)
+    uint16_t idx = 0;
+    for (uint8_t row = 0; row < font::CHAR_H; row++) {
+        uint8_t bits = glyph[row];
+        for (uint8_t col = 0; col < font::CHAR_W; col++) {
+            const Color& c = (bits & 0x80) ? fg : bg;
+            line_buf[idx++] = 0x100 | c.r;
+            line_buf[idx++] = 0x100 | c.g;
+            line_buf[idx++] = 0x100 | c.b;
+            bits <<= 1;
+        }
+    }
+
+    begin_pixel_write(x, y, x + font::CHAR_W - 1, y + font::CHAR_H - 1);
+    spi_tx9(line_buf, idx);
+    cs_high();
+}
+
+void draw_string(uint16_t x, uint16_t y, const char* str, Color fg, Color bg) {
+    while (*str) {
+        if (x + font::CHAR_W > WIDTH) {
+            x = 0;
+            y += font::CHAR_H;
+            if (y + font::CHAR_H > HEIGHT) return;
+        }
+        draw_char(x, y, *str++, fg, bg);
+        x += font::CHAR_W;
+    }
 }
 
 } // namespace lcd
