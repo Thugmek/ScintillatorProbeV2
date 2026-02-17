@@ -3,12 +3,16 @@
 #include "capture.hpp"
 #include "logging/log.hpp"
 #include "lcd/ili9488.hpp"
+#include "generated/button1.hpp"
 
 LOG_COMPONENT_DEF(Main, logging::Severity::debug);
 
 static void lcd_demo() {
     lcd::init();
     lcd::draw_string(0, 0, "Hello World!", lcd::colors::GREEN, lcd::colors::BLACK);
+    lcd::draw_sprite(0, 32, lcd::sprites::button1, lcd::colors::BLACK);
+    lcd::draw_sprite(64, 32, lcd::sprites::button1, lcd::colors::BLACK);
+    lcd::draw_sprite(128, 32, lcd::sprites::button1, lcd::colors::BLACK);
 
     log_info(Main, "LCD: demo pattern drawn");
 }

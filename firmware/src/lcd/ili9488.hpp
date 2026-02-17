@@ -31,4 +31,7 @@ void draw_pixel(uint16_t x, uint16_t y, Color color);
 void draw_char(uint16_t x, uint16_t y, char ch, Color fg, Color bg);
 void draw_string(uint16_t x, uint16_t y, const char* str, Color fg, Color bg);
 
+struct Sprite;
+void draw_sprite(uint16_t x, uint16_t y, const Sprite& sprite, Color bg = colors::BLACK);
+
 } // namespace lcd

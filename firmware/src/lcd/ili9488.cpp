@@ -1,4 +1,5 @@
 #include "lcd/ili9488.hpp"
+#include "lcd/sprite.hpp"
 #include "lcd/font_8x16.hpp"
 #include "hal.hpp"
 #include "logging/log.hpp"
@@ -207,6 +208,41 @@ void draw_string(uint16_t x, uint16_t y, const char* str, Color fg, Color bg) {
         draw_char(x, y, *str++, fg, bg);
         x += font::CHAR_W;
     }
+}
+
+void draw_sprite(uint16_t x, uint16_t y, const Sprite& sprite, Color bg) {
+    uint16_t w = sprite.width;
+    uint16_t h = sprite.height;
+    if (x + w > WIDTH || y + h > HEIGHT || w == 0 || h == 0) return;
+
+    begin_pixel_write(x, y, x + w - 1, y + h - 1);
+
+    const uint8_t* px = sprite.pixels;
+    const uint8_t* alpha = sprite.alpha;
+
+    for (uint16_t row = 0; row < h; row++) {
+        uint16_t idx = 0;
+        for (uint16_t col = 0; col < w; col++) {
+            bool opaque = true;
+            if (alpha) {
+                uint16_t bit_idx = row * w + col;
+                opaque = (alpha[bit_idx >> 3] >> (7 - (bit_idx & 7))) & 1;
+            }
+            if (opaque) {
+                line_buf[idx++] = 0x100 | px[0];
+                line_buf[idx++] = 0x100 | px[1];
+                line_buf[idx++] = 0x100 | px[2];
+            } else {
+                line_buf[idx++] = 0x100 | bg.r;
+                line_buf[idx++] = 0x100 | bg.g;
+                line_buf[idx++] = 0x100 | bg.b;
+            }
+            px += 3;
+        }
+        spi_tx9(line_buf, idx);
+    }
+
+    cs_high();
 }
 
 } // namespace lcd
