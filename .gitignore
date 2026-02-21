@@ -19,6 +19,10 @@ CTestTestfile.cmake
 *.lst
 *.d
 *.su
+*.pyc
+
+# KiCAD backups
+hardware/hardware-backups
 
 # IDE / editor files
 .idea/
