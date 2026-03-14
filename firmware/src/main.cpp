@@ -11,8 +11,8 @@ int main() {
 
     log_info(Main, "Firmware started");
 
-    HAL_TIM_PWM_Start(&hal::htim1, TIM_CHANNEL_1);
-    log_info(Main, "PWM started on TIM1_CH1");
+    HAL_TIM_PWM_Start(&hal::htim2, TIM_CHANNEL_3);
+    log_info(Main, "PWM started on TIM2_CH3");
 
     HAL_ADC_Start(&hal::hadc2);
     HAL_ADCEx_MultiModeStart_DMA(&hal::hadc1, capture::dma_buffer, capture::BUFFER_SIZE);
