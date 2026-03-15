@@ -47,10 +47,20 @@ static void capture_task(void *) {
 // ---------------------------------------------------------------------------
 static void usb_cobs_task(void *) {
     for (;;) {
+        // Poll ADC3 channel 9 (voltage sense)
+        HAL_ADC_Start(&hal::hadc3);
+        HAL_ADC_PollForConversion(&hal::hadc3, 10);
+        uint32_t adc_raw = HAL_ADC_GetValue(&hal::hadc3);
+        HAL_ADC_Stop(&hal::hadc3);
+
+        // 16-bit ADC, Vref=3.3V, divider ratio 1001:1
+        // voltage_V = adc_raw / 65535 * 3.3 * 1001
+        uint16_t voltage = static_cast<uint16_t>(adc_raw * 3303U / 65535U);
+
         if (usb_cdc_is_connected()) {
-            protocol::send_voltage_sense(0); // placeholder: actual voltage TBD
+            protocol::send_voltage_sense(voltage);
         }
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(50));
     }
 }
 
