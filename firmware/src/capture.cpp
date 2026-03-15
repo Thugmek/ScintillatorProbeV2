@@ -3,6 +3,8 @@
 
 namespace capture {
 
+TaskHandle_t task_handle = nullptr;
+
 volatile State state = State::ARMED;
 uint32_t dma_buffer[BUFFER_SIZE];
 uint32_t result[CAPTURE_SIZE];
@@ -36,6 +38,13 @@ void on_dma_event(uint16_t current_pos) {
     }
 
     state = State::CAPTURED;
+
+    // Wake the capture task
+    if (task_handle != nullptr) {
+        BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+        vTaskNotifyGiveFromISR(task_handle, &xHigherPriorityTaskWoken);
+        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+    }
 }
 
 bool is_ready() {

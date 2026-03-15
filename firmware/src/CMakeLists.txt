@@ -10,6 +10,6 @@ target_sources(firmware PRIVATE
   protocol/protocol.cpp
 )
 target_include_directories(firmware PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(firmware PRIVATE stm32_hal stm32_usb_device segger)
+target_link_libraries(firmware PRIVATE stm32_hal freertos stm32_usb_device segger)
 
 add_subdirectory(device)

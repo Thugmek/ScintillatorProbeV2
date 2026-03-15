@@ -1,4 +1,6 @@
 #include <cstdint>
+#include "FreeRTOS.h"
+#include "task.h"
 #include "hal.hpp"
 #include "capture.hpp"
 #include "logging/log.hpp"
@@ -7,6 +9,76 @@
 
 LOG_COMPONENT_DEF(Main, logging::Severity::debug);
 
+// ---------------------------------------------------------------------------
+// Task: peak capture
+// Blocks on a notification from the DMA ISR, processes the captured waveform,
+// then re-arms the trigger.
+// ---------------------------------------------------------------------------
+static void capture_task(void *) {
+    HAL_ADC_Start(&hal::hadc2);
+    HAL_ADCEx_MultiModeStart_DMA(&hal::hadc1, capture::dma_buffer, capture::BUFFER_SIZE);
+    capture::arm();
+    log_info(Main, "Capture armed (threshold=%u)", capture::TRIGGER_THRESHOLD);
+
+    for (;;) {
+        // Block until the DMA ISR signals a completed capture
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+        if (!capture::is_ready()) continue;
+
+        // Unpack interleaved samples: each uint32_t has ADC1[15:0], ADC2[31:16]
+        static char viz[capture::CAPTURE_SAMPLES + 1];
+        for (uint16_t i = 0; i < capture::CAPTURE_SIZE; i++) {
+            uint16_t adc1 = capture::result[i] & 0xFFFF;
+            uint16_t adc2 = (capture::result[i] >> 16) & 0xFFFF;
+            viz[i * 2]     = (adc1 > capture::TRIGGER_THRESHOLD) ? '*' : '.';
+            viz[i * 2 + 1] = (adc2 > capture::TRIGGER_THRESHOLD) ? '*' : '.';
+        }
+        viz[capture::CAPTURE_SAMPLES] = 0;
+        log_debug(Main, "%s", viz);
+
+        capture::arm();
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Task: USB COBS communication
+// Periodically sends voltage-sense telemetry over the USB CDC link.
+// ---------------------------------------------------------------------------
+static void usb_cobs_task(void *) {
+    for (;;) {
+        if (usb_cdc_is_connected()) {
+            protocol::send_voltage_sense(0); // placeholder: actual voltage TBD
+        }
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+}
+
+// ---------------------------------------------------------------------------
+// SysTick & FreeRTOS hooks
+// ---------------------------------------------------------------------------
+// HAL_Init() starts SysTick before the scheduler is running, so we must guard
+// the FreeRTOS tick handler until vTaskStartScheduler() has been called.
+extern "C" void xPortSysTickHandler(void);
+
+extern "C" void SysTick_Handler(void) {
+    HAL_IncTick();
+    if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
+        xPortSysTickHandler();
+    }
+}
+
+extern "C" void vApplicationStackOverflowHook(TaskHandle_t, char *) {
+    hal::panic();
+}
+
+extern "C" void vApplicationMallocFailedHook(void) {
+    hal::panic();
+}
+
+// ---------------------------------------------------------------------------
+// main — create tasks and start the scheduler
+// ---------------------------------------------------------------------------
 int main() {
     hal::init();
     logging::init();
@@ -17,38 +89,13 @@ int main() {
     HAL_TIM_PWM_Start(&hal::htim2, TIM_CHANNEL_3);
     log_info(Main, "PWM started on TIM2_CH3");
 
-    HAL_ADC_Start(&hal::hadc2);
-    HAL_ADCEx_MultiModeStart_DMA(&hal::hadc1, capture::dma_buffer, capture::BUFFER_SIZE);
-    capture::arm();
-    log_info(Main, "Capture armed (threshold=%u)", capture::TRIGGER_THRESHOLD);
+    xTaskCreate(capture_task,  "capture",  512, nullptr, 3, &capture::task_handle);
+    xTaskCreate(usb_cobs_task, "usb_cobs", 512, nullptr, 2, nullptr);
 
-    uint32_t last_voltage_tick = 0;
+    vTaskStartScheduler();
 
-    while (true) {
-        // Send voltage sense periodically (every 1 second)
-        uint32_t now = HAL_GetTick();
-        if (now - last_voltage_tick >= 1000) {
-            last_voltage_tick = now;
-            if (usb_cdc_is_connected()) {
-                protocol::send_voltage_sense(0); // placeholder: actual voltage TBD
-            }
-        }
-
-        if (capture::is_ready()) {
-            // Unpack interleaved samples: each uint32_t has ADC1[15:0], ADC2[31:16]
-            static char viz[capture::CAPTURE_SAMPLES + 1];
-            for (uint16_t i = 0; i < capture::CAPTURE_SIZE; i++) {
-                uint16_t adc1 = capture::result[i] & 0xFFFF;
-                uint16_t adc2 = (capture::result[i] >> 16) & 0xFFFF;
-                viz[i * 2]     = (adc1 > capture::TRIGGER_THRESHOLD) ? '*' : '.';
-                viz[i * 2 + 1] = (adc2 > capture::TRIGGER_THRESHOLD) ? '*' : '.';
-            }
-            viz[capture::CAPTURE_SAMPLES] = 0;
-            log_debug(Main, "%s", viz);
-
-            capture::arm();
-        }
-    }
+    // Should never reach here
+    for (;;) {}
 }
 
 // --- Interrupt handlers & HAL callbacks ---

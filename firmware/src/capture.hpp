@@ -1,7 +1,13 @@
 #pragma once
 #include <cstdint>
+#include "FreeRTOS.h"
+#include "task.h"
 
 namespace capture {
+
+// Task handle for the capture processing task (set by main at task creation).
+// ISRs use this to send notifications when a capture completes.
+extern TaskHandle_t task_handle;
 
 // Circular DMA buffer size in uint32_t words.
 // Must be large enough that pre-trigger data is not overwritten before we copy it.

@@ -264,7 +264,9 @@ namespace hal {
         }
 
         // Enable ADC interrupt for analog watchdog
-        HAL_NVIC_SetPriority(ADC_IRQn, 0, 0);
+        // Priority must be >= configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY (5)
+        // so the ISR can use FreeRTOS API (xTaskNotifyFromISR).
+        HAL_NVIC_SetPriority(ADC_IRQn, 5, 0);
         HAL_NVIC_EnableIRQ(ADC_IRQn);
 
         __HAL_RCC_DMA1_CLK_ENABLE();
@@ -285,7 +287,9 @@ namespace hal {
         __HAL_LINKDMA(&hadc1, DMA_Handle, hdma_adc1);
 
         // Enable DMA interrupt
-        HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 0, 0);
+        // Priority must be >= configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY (5)
+        // so the ISR can use FreeRTOS API (xTaskNotifyFromISR).
+        HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 5, 0);
         HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
 
     }
@@ -427,6 +431,3 @@ namespace hal {
 
 }
 
-extern "C" void SysTick_Handler(void) {
-    HAL_IncTick();
-}
