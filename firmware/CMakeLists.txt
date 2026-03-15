@@ -46,6 +46,7 @@ add_link_options(-Wl,--gc-sections -Wl,--print-memory-usage)
 add_executable(firmware)
 
 add_subdirectory(lib/stm32_hal)
+add_subdirectory(lib/stm32_usb_device)
 add_subdirectory(lib/segger)
 add_subdirectory(src)
 

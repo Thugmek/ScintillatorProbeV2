@@ -2,12 +2,15 @@
 #include "hal.hpp"
 #include "capture.hpp"
 #include "logging/log.hpp"
+#include "usb/usbd_cdc_if.h"
+#include "protocol/protocol.h"
 
 LOG_COMPONENT_DEF(Main, logging::Severity::debug);
 
 int main() {
     hal::init();
     logging::init();
+    usb_cdc_init();
 
     log_info(Main, "Firmware started");
 
@@ -19,7 +22,18 @@ int main() {
     capture::arm();
     log_info(Main, "Capture armed (threshold=%u)", capture::TRIGGER_THRESHOLD);
 
+    uint32_t last_voltage_tick = 0;
+
     while (true) {
+        // Send voltage sense periodically (every 1 second)
+        uint32_t now = HAL_GetTick();
+        if (now - last_voltage_tick >= 1000) {
+            last_voltage_tick = now;
+            if (usb_cdc_is_connected()) {
+                protocol::send_voltage_sense(0); // placeholder: actual voltage TBD
+            }
+        }
+
         if (capture::is_ready()) {
             // Unpack interleaved samples: each uint32_t has ADC1[15:0], ADC2[31:16]
             static char viz[capture::CAPTURE_SAMPLES + 1];
@@ -38,6 +52,10 @@ int main() {
 }
 
 // --- Interrupt handlers & HAL callbacks ---
+
+extern "C" void OTG_FS_IRQHandler(void) {
+    HAL_PCD_IRQHandler(&hal::hpcd_USB_OTG_FS);
+}
 
 extern "C" void DMA1_Stream0_IRQHandler(void) {
     HAL_DMA_IRQHandler(hal::hadc1.DMA_Handle);

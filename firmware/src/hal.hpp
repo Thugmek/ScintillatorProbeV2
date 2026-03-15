@@ -11,4 +11,5 @@ namespace hal {
     extern ADC_HandleTypeDef hadc1;
     extern ADC_HandleTypeDef hadc2;
     extern DMA_HandleTypeDef hdma_adc1;
+    extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
 }

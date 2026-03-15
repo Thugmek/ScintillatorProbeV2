@@ -23,6 +23,8 @@ extern "C" {
 #define HAL_TIM_MODULE_ENABLED
 #define HAL_ADC_MODULE_ENABLED
 #define HAL_SPI_MODULE_ENABLED
+#define HAL_PCD_MODULE_ENABLED
+#define HAL_HCD_MODULE_ENABLED
 
 /* Uncomment to enable additional modules as needed:
 #define HAL_CEC_MODULE_ENABLED
@@ -162,6 +164,14 @@ extern "C" {
 
 #ifdef HAL_TIM_MODULE_ENABLED
   #include "stm32h7xx_hal_tim.h"
+#endif
+
+#ifdef HAL_PCD_MODULE_ENABLED
+  #include "stm32h7xx_hal_pcd.h"
+#endif
+
+#ifdef HAL_HCD_MODULE_ENABLED
+  #include "stm32h7xx_hal_hcd.h"
 #endif
 
 /* ── assert_param macro ────────────────────────────────────────────── */

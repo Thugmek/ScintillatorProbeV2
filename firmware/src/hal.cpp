@@ -8,6 +8,7 @@ namespace hal {
     ADC_HandleTypeDef hadc2;
     DMA_HandleTypeDef hdma_adc1;
     SPI_HandleTypeDef hspi1;
+    PCD_HandleTypeDef hpcd_USB_OTG_FS;
 
     void MPU_Config(void);
     void SystemClock_Config(void);
@@ -15,6 +16,7 @@ namespace hal {
     void MX_TIM2_Init(void);
     void MX_ADC1_Init(void);
     void MX_ADC2_Init(void);
+    void MX_USB_OTG_FS_PCD_Init(void);
 
     void panic(void){
         // TODO goto safe state here
@@ -32,6 +34,7 @@ namespace hal {
         MX_TIM2_Init();
         MX_ADC1_Init();
         MX_ADC2_Init();
+        MX_USB_OTG_FS_PCD_Init();
     }
 
     void MPU_Config(void){
@@ -76,7 +79,8 @@ namespace hal {
         /** Initializes the RCC Oscillators according to the specified parameters
         * in the RCC_OscInitTypeDef structure.
         */
-        RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+        RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_HSI48;
+        RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
         RCC_OscInitStruct.HSIState = RCC_HSI_DIV1;
         RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
         RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
@@ -118,7 +122,7 @@ namespace hal {
 
         /** Initializes the peripherals clock
         */
-        PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_ADC;
+        PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_ADC|RCC_PERIPHCLK_USB;
         PeriphClkInitStruct.PLL2.PLL2M = 32;
         PeriphClkInitStruct.PLL2.PLL2N = 100;
         PeriphClkInitStruct.PLL2.PLL2P = 4;
@@ -129,6 +133,7 @@ namespace hal {
         PeriphClkInitStruct.PLL2.PLL2FRACN = 0;
         PeriphClkInitStruct.Spi123ClockSelection = RCC_SPI123CLKSOURCE_PLL2;
         PeriphClkInitStruct.AdcClockSelection = RCC_ADCCLKSOURCE_PLL2;
+        PeriphClkInitStruct.UsbClockSelection = RCC_USBCLKSOURCE_HSI48;
         if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
         {
             panic();
@@ -379,6 +384,45 @@ namespace hal {
         GPIO_InitStruct.Pull = GPIO_NOPULL;
         GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
         HAL_GPIO_Init(LCD_CS_GPIO_Port, &GPIO_InitStruct);
+    }
+
+    void MX_USB_OTG_FS_PCD_Init(void){
+        hpcd_USB_OTG_FS.Instance = USB2_OTG_FS;
+        hpcd_USB_OTG_FS.Init.dev_endpoints = 9;
+        hpcd_USB_OTG_FS.Init.speed = PCD_SPEED_FULL;
+        hpcd_USB_OTG_FS.Init.dma_enable = DISABLE;
+        hpcd_USB_OTG_FS.Init.phy_itface = PCD_PHY_EMBEDDED;
+        hpcd_USB_OTG_FS.Init.Sof_enable = DISABLE;
+        hpcd_USB_OTG_FS.Init.low_power_enable = DISABLE;
+        hpcd_USB_OTG_FS.Init.lpm_enable = DISABLE;
+        hpcd_USB_OTG_FS.Init.battery_charging_enable = DISABLE;
+        hpcd_USB_OTG_FS.Init.vbus_sensing_enable = DISABLE;
+        hpcd_USB_OTG_FS.Init.use_dedicated_ep1 = DISABLE;
+
+        HAL_PWREx_EnableUSBVoltageDetector();
+
+        __HAL_RCC_USB2_OTG_FS_CLK_ENABLE();
+
+        __HAL_RCC_GPIOA_CLK_ENABLE();
+        GPIO_InitTypeDef GPIO_InitStruct = {0};
+        GPIO_InitStruct.Pin = GPIO_PIN_11|GPIO_PIN_12;
+        GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+        GPIO_InitStruct.Pull = GPIO_NOPULL;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+        GPIO_InitStruct.Alternate = GPIO_AF10_OTG2_FS;
+        HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+        HAL_NVIC_SetPriority(OTG_FS_IRQn, 6, 0);
+        HAL_NVIC_EnableIRQ(OTG_FS_IRQn);
+
+        if (HAL_PCD_Init(&hpcd_USB_OTG_FS) != HAL_OK)
+        {
+            panic();
+        }
+
+        HAL_PCDEx_SetRxFiFo(&hpcd_USB_OTG_FS, 128);
+        HAL_PCDEx_SetTxFiFo(&hpcd_USB_OTG_FS, 0, 32);
+        HAL_PCDEx_SetTxFiFo(&hpcd_USB_OTG_FS, 1, 128);
     }
 
 }
