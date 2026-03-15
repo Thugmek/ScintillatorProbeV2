@@ -7,6 +7,8 @@ namespace hal {
     void panic(void);
     void init(void);
 
+    void set_ht_power(uint16_t interval);
+
     extern TIM_HandleTypeDef htim2;
     extern ADC_HandleTypeDef hadc1;
     extern ADC_HandleTypeDef hadc2;

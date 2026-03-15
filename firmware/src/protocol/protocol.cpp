@@ -4,6 +4,7 @@
 #include "usb/usbd_cdc_if.h"
 #include "logging/log.hpp"
 #include <cstring>
+#include "hal.hpp"
 
 LOG_COMPONENT_DEF(Proto, logging::Severity::debug);
 
@@ -12,8 +13,6 @@ namespace protocol {
 static constexpr size_t RX_BUF_SIZE = 128;
 static uint8_t rx_buf[RX_BUF_SIZE];
 static size_t rx_pos = 0;
-
-static uint16_t target_power_voltage = 0;
 
 static void dispatch(const uint8_t *payload, size_t len) {
     if (len < 1) return;
@@ -27,7 +26,7 @@ static void dispatch(const uint8_t *payload, size_t len) {
             }
             TargetPowerMsg msg;
             memcpy(&msg, payload, sizeof(msg));
-            target_power_voltage = msg.voltage;
+            hal::set_ht_power(msg.voltage);
             log_info(Proto, "TargetPower: %u V", msg.voltage);
             break;
         }

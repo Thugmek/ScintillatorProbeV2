@@ -166,7 +166,7 @@ namespace hal {
             panic();
         }
         sConfigOC.OCMode = TIM_OCMODE_PWM1;
-        sConfigOC.Pulse = 15;
+        sConfigOC.Pulse = 0;
         sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
         sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
         if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
@@ -185,6 +185,18 @@ namespace hal {
         GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
         GPIO_InitStruct.Alternate = GPIO_AF1_TIM2;
         HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+    }
+
+    void set_ht_power(uint16_t interval){
+        TIM_OC_InitTypeDef sConfigOC = {0};
+        sConfigOC.OCMode = TIM_OCMODE_PWM1;
+        sConfigOC.Pulse = interval;
+        sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+        sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+        if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
+        {
+            panic();
+        }
     }
 
     void MX_ADC1_Init(void){
