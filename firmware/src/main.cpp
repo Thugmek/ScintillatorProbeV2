@@ -26,16 +26,9 @@ static void capture_task(void *) {
 
         if (!capture::is_ready()) continue;
 
-        // Unpack interleaved samples: each uint32_t has ADC1[15:0], ADC2[31:16]
-        static char viz[capture::CAPTURE_SAMPLES + 1];
-        for (uint16_t i = 0; i < capture::CAPTURE_SIZE; i++) {
-            uint16_t adc1 = capture::result[i] & 0xFFFF;
-            uint16_t adc2 = (capture::result[i] >> 16) & 0xFFFF;
-            viz[i * 2]     = (adc1 > capture::TRIGGER_THRESHOLD) ? '*' : '.';
-            viz[i * 2 + 1] = (adc2 > capture::TRIGGER_THRESHOLD) ? '*' : '.';
+        if (usb_cdc_is_connected()) {
+            protocol::send_capture_data(capture::result, capture::CAPTURE_SIZE);
         }
-        viz[capture::CAPTURE_SAMPLES] = 0;
-        log_debug(Main, "%s", viz);
 
         capture::arm();
     }

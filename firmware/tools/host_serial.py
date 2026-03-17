@@ -18,6 +18,10 @@ from cobs import cobs
 # Message IDs (must match firmware messages.h)
 MSG_TARGET_POWER  = 0x01
 MSG_VOLTAGE_SENSE = 0x02
+MSG_CAPTURE_DATA  = 0x03
+
+# Must match firmware capture.hpp
+CAPTURE_SIZE = 40  # uint32_t words
 
 
 class ScintillatorProbe:
@@ -63,6 +67,12 @@ class ScintillatorProbe:
             elif msg_id == MSG_TARGET_POWER and len(payload) >= 3:
                 voltage, = struct.unpack_from("<H", payload, 1)
                 yield {"type": "target_power", "voltage": voltage}
+            elif msg_id == MSG_CAPTURE_DATA and len(payload) >= 1 + CAPTURE_SIZE * 4:
+                words = struct.unpack_from(f"<{CAPTURE_SIZE}I", payload, 1)
+                # Unpack interleaved ADC1[15:0] / ADC2[31:16]
+                adc1 = [w & 0xFFFF for w in words]
+                adc2 = [(w >> 16) & 0xFFFF for w in words]
+                yield {"type": "capture_data", "adc1": adc1, "adc2": adc2}
             else:
                 yield {"type": "unknown", "id": msg_id, "data": payload}
 
@@ -87,6 +97,8 @@ def main():
             for msg in probe.read_messages():
                 if msg["type"] == "voltage_sense":
                     print(f"  VoltageSense: {msg['voltage']} V")
+                elif msg["type"] == "capture_data":
+                    print(f"  Capture: {len(msg['adc1'])} samples per channel")
                 else:
                     print(f"  {msg}")
             time.sleep(0.01)

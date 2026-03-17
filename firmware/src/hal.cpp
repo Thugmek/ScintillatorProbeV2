@@ -207,12 +207,12 @@ namespace hal {
         ADC_ChannelConfTypeDef sConfig = {0};
 
         __HAL_RCC_ADC12_CLK_ENABLE();
-        __HAL_RCC_GPIOA_CLK_ENABLE();
+        __HAL_RCC_GPIOB_CLK_ENABLE();
         GPIO_InitTypeDef GPIO_InitStruct = {0};
-        GPIO_InitStruct.Pin = GPIO_PIN_6;
+        GPIO_InitStruct.Pin = GPIO_PIN_1;
         GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
         GPIO_InitStruct.Pull = GPIO_NOPULL;
-        HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+        HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
         /** Common config
         */
@@ -249,7 +249,7 @@ namespace hal {
 
         /** Configure Regular Channel
         */
-        sConfig.Channel = ADC_CHANNEL_3;
+        sConfig.Channel = ADC_CHANNEL_9;
         sConfig.Rank = ADC_REGULAR_RANK_1;
         sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
         sConfig.SingleDiff = ADC_SINGLE_ENDED;
@@ -262,14 +262,14 @@ namespace hal {
         }
 
         /** Configure Analog Watchdog 1
-         *  Triggers an interrupt when a conversion on ADC_CHANNEL_3 exceeds the threshold.
+         *  Triggers an interrupt when a conversion on ADC_CHANNEL_9 exceeds the threshold.
          *  Note: In interleaved mode, AWD on ADC1 only checks ADC1 conversions (every other
          *  sample). This is sufficient as long as the pulse spans multiple sample periods.
          */
         ADC_AnalogWDGConfTypeDef AnalogWDGConfig = {0};
         AnalogWDGConfig.WatchdogNumber = ADC_ANALOGWATCHDOG_1;
         AnalogWDGConfig.WatchdogMode = ADC_ANALOGWATCHDOG_SINGLE_REG;
-        AnalogWDGConfig.Channel = ADC_CHANNEL_3;
+        AnalogWDGConfig.Channel = ADC_CHANNEL_9;
         AnalogWDGConfig.ITMode = ENABLE;
         AnalogWDGConfig.HighThreshold = capture::TRIGGER_THRESHOLD;
         AnalogWDGConfig.LowThreshold = 0;
@@ -335,7 +335,7 @@ namespace hal {
 
         /** Configure Regular Channel
         */
-        sConfig.Channel = ADC_CHANNEL_3;
+        sConfig.Channel = ADC_CHANNEL_9;
         sConfig.Rank = ADC_REGULAR_RANK_1;
         sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
         sConfig.SingleDiff = ADC_SINGLE_ENDED;

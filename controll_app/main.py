@@ -27,6 +27,7 @@ from PyQt5.QtWidgets import (
 
 MSG_TARGET_POWER = 0x01
 MSG_VOLTAGE_SENSE = 0x02
+MSG_PEAK_RECORD = 0x03
 
 SERIAL_PORT = "/dev/ttyACM1"
 
@@ -35,6 +36,7 @@ class ScintillatorProbe:
     def __init__(self, port: str, baudrate: int = 115200, timeout: float = 0.1):
         self.ser = serial.Serial(port, baudrate=baudrate, timeout=timeout)
         self._rx_buf = bytearray()
+        self.caprute_no = 0
 
     def close(self):
         self.ser.close()
@@ -72,6 +74,11 @@ class ScintillatorProbe:
             elif msg_id == MSG_TARGET_POWER and len(payload) >= 3:
                 (voltage,) = struct.unpack_from("<H", payload, 1)
                 yield {"type": "target_power", "voltage": voltage}
+            elif msg_id == MSG_PEAK_RECORD:
+                capture = struct.unpack_from("<40H", payload, 1)
+                with open(f"capture_{self.caprute_no}", "w") as f:
+                    f.write(f"{capture}")
+                self.caprute_no += 1
             else:
                 yield {"type": "unknown", "id": msg_id, "data": payload}
 

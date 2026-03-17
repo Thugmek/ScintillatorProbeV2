@@ -72,4 +72,17 @@ void send_voltage_sense(uint16_t voltage) {
     usb_cdc_transmit(encoded, static_cast<uint16_t>(enc_len));
 }
 
+void send_capture_data(const uint32_t *samples, uint16_t count) {
+    CaptureDataMsg msg;
+    msg.msg_id = MsgId::CAPTURE_DATA;
+    memcpy(msg.samples, samples, count * sizeof(uint32_t));
+
+    uint8_t encoded[sizeof(msg) + 2 + 1]; // COBS overhead + delimiter
+    size_t enc_len = cobs::encode(reinterpret_cast<const uint8_t *>(&msg),
+                                  sizeof(msg), encoded);
+    encoded[enc_len++] = 0x00; // frame delimiter
+
+    usb_cdc_transmit(encoded, static_cast<uint16_t>(enc_len));
+}
+
 } // namespace protocol
