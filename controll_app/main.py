@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """Scintillator Probe Control App — PyQt5 GUI."""
 
+import collections
 import struct
 import sys
 
+import numpy as np
+import pyqtgraph as pg
 import serial
 from cobs import cobs
 from PyQt5.QtCore import QTimer
@@ -96,18 +99,17 @@ class MainWindow(QWidget):
         power_row.addWidget(self.power_spin)
         power_row.addWidget(self.send_btn)
 
-        # --- Voltage sense row ---
-        sense_label = QLabel("Voltage Sense:")
-        self.sense_value = QLabel("—")
-
-        sense_row = QHBoxLayout()
-        sense_row.addWidget(sense_label)
-        sense_row.addWidget(self.sense_value)
+        # --- Voltage sense chart ---
+        self.history = collections.deque(maxlen=2000)
+        self.plot_widget = pg.PlotWidget(title="Voltage Sense")
+        self.plot_widget.setLabel("left", "Voltage")
+        self.plot_widget.setLabel("bottom", "Sample")
+        self.curve = self.plot_widget.plot(pen="y")
 
         # --- Main layout ---
         layout = QVBoxLayout()
         layout.addLayout(power_row)
-        layout.addLayout(sense_row)
+        layout.addWidget(self.plot_widget)
         self.setLayout(layout)
 
         # --- Poll timer ---
@@ -119,9 +121,13 @@ class MainWindow(QWidget):
         self.probe.send_target_power(self.power_spin.value())
 
     def _poll(self):
+        updated = False
         for msg in self.probe.read_messages():
             if msg["type"] == "voltage_sense":
-                self.sense_value.setText(str(msg["voltage"]))
+                self.history.append(msg["voltage"])
+                updated = True
+        if updated:
+            self.curve.setData(np.array(self.history))
 
     def closeEvent(self, event):
         self.timer.stop()

@@ -1,3 +1,5 @@
 pyserial
 cobs
 PyQt5
+pyqtgraph
+numpy
